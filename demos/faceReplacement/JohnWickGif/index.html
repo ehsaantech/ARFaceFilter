@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-language" content="en-EN" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+    
+    <title>FACE REPLACEMENT IN GIF DEMO</title>
+    
+    <!-- INCLUDE JEELIZ FACEFILTER SCRIPT -->
+    <script type="text/javascript" src="../../../dist/jeelizFaceFilter.js"></script>
+
+    <!-- INCLUDE DEMO SCRIPT -->
+    <script type="text/javascript" src="./demo_faceReplacementGif.js"></script>
+
+    <!-- LIB TO GET GIF METADATA (GIFY) -->
+    <script type="text/javascript" src="../../../libs/gify/jdataview.js"></script>
+    <script type="text/javascript" src="../../../libs/gify/gify.min.js"></script>
+    
+    <!-- LIB TO EXTRACT GIF FRAMES (GIF-FRAMES) -->
+    <script type="text/javascript" src="../../../libs/gif-frames/gif-frames.min.js"></script>
+
+    <style type="text/css">
+        body {
+            margin: 0px;
+            box-sizing: border-box;
+            overflow: hidden;
+            font-family: Helvetica, Arial, Sans-Serif;
+            background-image: url("../../appearance/bg.png");
+            background-attachment: fixed;
+            background-position: center;
+            background-size: contain;
+        }
+
+        #gifContainer {
+            background-color: silver;
+            z-index: 10;
+            position: absolute;
+            max-height: calc(100vh - 160px);
+            max-width: 100vw;
+            left: 50%;
+            top: 50%;
+            margin-top: -76px;
+            transform: translate(-50%, -50%);
+        }
+
+        #jeeFaceFilterCanvas {}
+
+        .gif {
+            z-index: 8;
+            top: 4px;
+            left: 0px;
+            max-width: 100vw;
+            max-height: calc(100vh - 160px);
+        }
+
+        .canvasDetected {
+            /*style of the canvas when user face is detected*/
+            position: absolute;
+            z-index: -1;
+        }
+
+        .canvasNotDetected {
+            /*style of the canvas when user face is lost */
+            z-index: 11;
+            position: absolute;
+            top: auto !important;
+            bottom: 0px !important;
+            left: 0px !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+
+        #carousel {
+            z-index: 20;
+            position: absolute;
+            max-width: 100vw;
+            bottom: 0px;
+        }
+
+        .carouselItem {
+            cursor: pointer;
+            border: 6px solid transparent;
+            min-height: 128px;
+            width: auto !important;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .slick-slide {
+            /* width: auto !important; */
+        }
+
+        .slick-center {
+            transform: scale(1.1);
+            z-index: 99;
+            transform-origin: center bottom;
+            box-shadow: 0px 0px 12px white;
+        }
+
+        .slick-center .carouselItem {
+            border: none !important;
+        }
+
+        .slick-track {
+            height: 144px;
+            margin-top: 20px;
+        }
+
+        .carouselItem1 {
+            background-image: url("thumbnails/jw1.gif.png");
+            width: 150px !important;
+        }
+
+        .carouselItem2 {
+            background-image: url("thumbnails/jw2.gif.png");
+            width: 150px !important;
+        }
+
+        .carouselItem3 {
+            background-image: url("thumbnails/jw3.gif.png");
+            width: 150px !important;
+        }
+
+        .carouselItem4 {
+            background-image: url("thumbnails/jw4.gif.png");
+            width: 150px !important;
+        }
+
+        .carouselItem5 {
+            background-image: url("thumbnails/jw5.gif.png");
+            width: 150px !important;
+        }
+
+        .carouselItem6 {
+            background-image: url("thumbnails/jw1.gif.png");
+            width: 150px !important;
+        }
+
+        #customImage {
+            cursor: pointer;
+            width: 118px;
+        }
+    </style>
+
+    <!-- SLICK CAROUSEL STYLE -->
+    <!-- Add the slick-theme.css if you want default styling -->
+    <link rel="stylesheet" type="text/css" href="../../../libs/slickCarousel/v1_9/slick.css" />
+    <!-- Add the slick-theme.css if you want default styling -->
+    <link rel="stylesheet" type="text/css" href="../../../libs/slickCarousel/v1_9/slick-theme.css" />
+    <!-- jQuery (required by Slick Carousel) -->
+    <script type="text/javascript" src="../../../libs/jquery/jquery-3.3.1.min.js"></script>
+    </head>
+
+<body onload="main()" style="color: white">
+    <div id="gifContainer">
+        <canvas width="1024" height="1024" id="jeeFaceFilterCanvas" class="gif"></canvas>
+    </div>
+
+    <!-- SLICK CAROUSEL CONTENT -->
+    <!--
+            If the detected State is not provided (ie [{x: ..., y:.., s:..., ry:..., rz:...}]
+            We will search for a face on each frame of the provided GIF
+            (and display the found face detected State in the JS console)
+            Otherwise we build the image mask directly using the detected State.
+        -->
+    <div id="carousel">
+        <div onclick="change_gif('gifs/jw1.gif',[
+            { x: -0.077, y: 0.206, s: 0.228, ry: 0.141, rz: 0.071 },
+            { x: -0.087, y: 0.23, s: 0.23, ry: 0.098, rz: 0.089 },
+            { x: -0.094, y: 0.236, s: 0.232, ry: 0.073, rz: 0.09 },
+            { x: -0.1, y: 0.226, s: 0.232, ry: 0.05, rz: 0.093 },
+            { x: -0.104, y: 0.203, s: 0.239, ry: 0.031, rz: 0.106 },
+            { x: -0.122, y: 0.125, s: 0.229, ry: 0.067, rz: 0.118 },
+            { x: -0.124, y: 0.094, s: 0.226, ry: 0.061, rz: 0.121 },
+            { x: -0.119, y: 0.07, s: 0.229, ry: 0.062, rz: 0.129 },
+            { x: -0.103, y: -0.021, s: 0.23, ry: 0.112, rz: 0.13 },
+        ], false, 1)" class="carouselItem carouselItem1"></div>
+
+        <div onclick="change_gif('gifs/jw2.gif',[
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+        ], false, 1)" class='carouselItem carouselItem2'> </div>
+
+        <div onclick="change_gif('gifs/jw3.gif', [
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+        ], false, 1)" class='carouselItem carouselItem3'> </div>
+
+        <div onclick="change_gif('gifs/jw4.gif', [
+            false,
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+        ], false, 1)" class='carouselItem carouselItem4'> </div>
+
+        <div onclick="change_gif('gifs/jw5.gif',[
+            { x: -.36, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.355, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.35, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.34, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+            { x: -.345, y: 0.156, s: 0.10, ry: 0.0, rz: 0.0 },
+        ], false, 1)" class="carouselItem carouselItem5"></div>
+
+        <div onclick="change_gif('gifs/jw1.gif', undefined,false)" class="carouselItem carouselItem6"></div>
+        </div>
+
+    <!-- SLICK CAROUSEL SCRIPT -->
+    <script type="text/javascript" src="../../../libs/slickCarousel/v1_9/slick.min.js"></script>
+    </body>
+
+</html>
