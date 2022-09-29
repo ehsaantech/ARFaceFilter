@@ -99,9 +99,27 @@ var STATES = {
 };
 var STATE = STATES.IDLE;
 var ISUSERFACEDETECTED = false;
+var VIDEOELEMENT;
+
+function main() {
+  //entry point
+  VIDEOELEMENT = document.getElementById("myVideo");
+
+  if (
+    VIDEOELEMENT["currentTime"] &&
+    VIDEOELEMENT["videoWidth"] &&
+    VIDEOELEMENT["videoHeight"]
+  ) {
+    console.log(VIDEOELEMENT);
+    __start();
+  } else {
+    setTimeout(main, 100);
+    VIDEOELEMENT["play"]();
+  }
+}
 
 //entry point
-function main() {
+function __start() {
   STATE = STATES.LOADING;
 
   build_carousel();
@@ -112,6 +130,9 @@ function main() {
 
   JEEFACEFILTERAPI.init({
     canvasId: "jeeFaceFilterCanvas",
+    videoSettings: {
+      videoElement: VIDEOELEMENT,
+    },
     NNCpath: "../../../dist/", //root of NNC.json file
     callbackReady: function (errCode, spec) {
       if (errCode) {
